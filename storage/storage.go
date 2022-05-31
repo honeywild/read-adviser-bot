@@ -5,6 +5,8 @@ import (
 	"fmt"
 )
 
+var ErrNoSavedPages = errors.New("no saved pages")
+
 type Storage interface {
 	Savep(p *Page) error
 	PickRandom(userName string) (*Page, error)
