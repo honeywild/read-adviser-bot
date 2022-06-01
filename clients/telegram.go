@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"net/url"
 	"path"
+	"read-adviser-bot/lib/e"
 	"strconv"
 )
 
@@ -15,8 +16,8 @@ type Client struct {
 	client   http.Client
 }
 
-func New(host string, token string) Client {
-	return Client{
+func New(host string, token string) *Client {
+	return &Client{
 		host:     host,
 		basePath: newBasePath(token),
 		client:   http.Client{},
