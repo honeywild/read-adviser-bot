@@ -67,7 +67,7 @@ func (c *Client) SendMessage(chatID int, text string) error {
 }
 
 func (c *Client) doRequest(method string, query url.Values) (data []byte, err error) {
-	defer func() { err = e.Wrap("can't do a request", err) }()
+	defer func() { err = e.WrapIfErr("can't do a request", err) }()
 
 	u := url.URL{
 		Scheme: "https",
@@ -76,18 +76,12 @@ func (c *Client) doRequest(method string, query url.Values) (data []byte, err er
 	}
 
 	//Prepairing the request
-
 	req, err := http.NewRequest(http.MethodGet, u.String(), nil)
 	if err != nil {
-		/*TODO:
-		check for
-			errors.Is() &
-			errors.As() */
-		errMsg := "can't do a request"
-		return nil, e.Wrap(errMsg, err)
+		return nil, err
 	}
 	req.URL.RawQuery = query.Encode()
-	//Do it
+
 	resp, err := c.client.Do(req)
 	if err != nil {
 		return nil, err
