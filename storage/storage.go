@@ -11,7 +11,7 @@ import (
 var ErrNoSavedPages = errors.New("no saved pages")
 
 type Storage interface {
-	Savep(p *Page) error
+	Save(p *Page) error
 	PickRandom(userName string) (*Page, error)
 	Remove(p *Page) error
 	IsExists(p *Page) (bool, error)

@@ -7,12 +7,12 @@ import (
 )
 
 type Consumer struct {
-	fether    events.Fetcher
+	fetcher   events.Fetcher
 	processor events.Processor
 	batchSize int
 }
 
-func New(fetcher, processor, batchSize) Consumer {
+func New(fetcher events.Fetcher, processor events.Processor, batchSize int) Consumer {
 	return Consumer{
 		fetcher:   fetcher,
 		processor: processor,
@@ -52,11 +52,11 @@ func (c Consumer) Start() error {
 	3.  sync.WaitGroup{}
 */
 
-func (c *Consumer) handleEvents(events) error {
+func (c *Consumer) handleEvents(events []events.Event) error {
 	for _, event := range events {
 		log.Printf("got new event %s", event.Text)
 
-		if ee := c.processor.Proccess(event); err != nil {
+		if err := c.processor.Process(event); err != nil {
 			//TODO: retry, backup
 			log.Printf("can't handle event: %s", err.Error())
 
@@ -65,4 +65,5 @@ func (c *Consumer) handleEvents(events) error {
 
 	}
 
+	return nil
 }

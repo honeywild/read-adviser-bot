@@ -3,7 +3,8 @@ package main
 import (
 	"flag"
 	"log"
-	tgClient "read-adviser-bot/clients"
+	tgClient "read-adviser-bot/clients/telegram"
+	event_consumer "read-adviser-bot/consumer/event-consumer"
 	telegram "read-adviser-bot/events/telegram"
 	"read-adviser-bot/storage/files"
 )
@@ -29,7 +30,7 @@ func main() {
 		log.Fatal("service is stopped", err)
 	}
 }
-func mustToken() (string, error) {
+func mustToken() string {
 
 	token := flag.String(
 		"token-bot-token",
@@ -42,5 +43,5 @@ func mustToken() (string, error) {
 	if *token == "" {
 		log.Fatal("incorrect token")
 	}
-
+	return *token
 }
