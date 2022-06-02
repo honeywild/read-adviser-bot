@@ -2,7 +2,10 @@ package storage
 
 import (
 	"crypto/sha1"
+	"errors"
 	"fmt"
+	"io"
+	"read-adviser-bot/lib/e"
 )
 
 var ErrNoSavedPages = errors.New("no saved pages")

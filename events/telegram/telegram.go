@@ -1,7 +1,10 @@
 package telegram
 
 import (
+	"errors"
 	"read-adviser-bot/clients/telegram"
+	"read-adviser-bot/events"
+	"read-adviser-bot/lib/e"
 	"read-adviser-bot/storage"
 )
 
@@ -23,7 +26,7 @@ var (
 	ErrUnknownMetaType  = errors.New("unknown meta type")
 )
 
-func New(client, storage) *Processor {
+func New(client *telegram.Client, storage storage.Storage) *Processor {
 
 	return &Processor{
 		tg:      client,
@@ -32,22 +35,22 @@ func New(client, storage) *Processor {
 
 }
 
-func (p *Processor) Fetch(limit) ([]events.Event, error) {
-	update, err := p.tg.Updates(p.offset, limit)
+func (p *Processor) Fetch(limit int) ([]events.Event, error) {
+	updates, err := p.tg.Updates(p.offset, limit)
 	if err != nil {
 		return nil, e.Wrap("can't get events", err)
 	}
 
-	if len(update) == 0 {
+	if len(updates) == 0 {
 		return nil, nil //we can return a sp. error as well
 	}
 
 	//allocate memory
 
-	res := make([]events.Event, 0, len(update))
+	res := make([]events.Event, 0, len(updates))
 
-	for _, u := range update {
-		res = append(res, Event(u))
+	for _, u := range updates {
+		res = append(res, event(u))
 	}
 
 	//important:
@@ -58,7 +61,7 @@ func (p *Processor) Fetch(limit) ([]events.Event, error) {
 
 }
 
-func Event(update) events.Event {
+func event(update telegram.Update) events.Event {
 	updateType := fetchType(update)
 
 	res := events.Event{
@@ -78,14 +81,14 @@ func Event(update) events.Event {
 	return res
 }
 
-func fetchText(update) string {
+func fetchText(update telegram.Update) string {
 	if update.Message == nil {
 		return ""
 	}
 	return update.Message.Text
 }
 
-func fetchType(update) events.Type {
+func fetchType(update telegram.Update) events.Type {
 	if update.Message == nil {
 		return events.Unknown
 	}
@@ -93,23 +96,25 @@ func fetchType(update) events.Type {
 	return events.Message
 }
 
-func (p *Proccessor) Process(events.Event) error {
+func (p *Processor) Process(event events.Event) error {
 	switch event.Type {
 	case events.Message:
-		return p.ProccessMessage(event)
+		return p.processMessage(event)
 	default:
-		return e.Wrap
+		return e.Wrap("can't process message", ErrUnknownEventType)
 	}
 }
 
 func meta(event events.Event) (Meta, error) {
 	res, ok := event.Meta.(Meta)
 	if !ok {
-		return Meta{}, e.Wrap("can't get meta", errUnknownMetaType)
+		return Meta{}, e.Wrap("can't get meta", ErrUnknownMetaType)
 	}
+
+	return res, nil
 }
 
-func (p *Proccesor) processMessage(events.Event) {
+func (p *Processor) processMessage(event events.Event) error {
 	meta, err := meta(event)
 	if err != nil {
 		return e.Wrap("can't process message", err)
@@ -117,7 +122,7 @@ func (p *Proccesor) processMessage(events.Event) {
 
 	//non-trivial momement
 
-	if err := p.doCmd(event.Text, meta.ChatID, meta.username); err != nil {
+	if err := p.doCmd(event.Text, meta.ChatID, meta.Username); err != nil {
 		return e.Wrap("can't process message", err)
 	}
 

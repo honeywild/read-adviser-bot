@@ -3,7 +3,7 @@ package main
 import (
 	"flag"
 	"log"
-	tgClient "read-adviser-bot/clients/telegram"
+	tgClient "read-adviser-bot/clients"
 	telegram "read-adviser-bot/events/telegram"
 	"read-adviser-bot/storage/files"
 )

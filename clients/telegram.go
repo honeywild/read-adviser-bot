@@ -33,7 +33,7 @@ func newBasePath(token string) string {
 	return "bot" + token
 }
 
-func (c *Client) Updates(offset int, limit int) ([]Update, error) {
+func (c *Client) Updates(offset int, limit int) (updates []Update, err error) {
 	q := url.Values{}
 	q.Add("offset", strconv.Itoa(offset))
 	q.Add("limit", strconv.Itoa(limit))
@@ -43,7 +43,7 @@ func (c *Client) Updates(offset int, limit int) ([]Update, error) {
 		return nil, err
 	}
 
-	var res UpdateResponse
+	var res UpdatesResponse
 
 	if err := json.Unmarshal(data, &res); err != nil {
 		return nil, err
@@ -58,7 +58,7 @@ func (c *Client) SendMessage(chatID int, text string) error {
 	q.Add("chat_id", strconv.Itoa(chatID))
 	q.Add("text", text)
 
-	_, err = c.doRequest(sendMessageMethod, q)
+	_, err := c.doRequest(sendMessageMethod, q)
 	if err != nil {
 		return e.Wrap("can't send a message", err)
 	}
@@ -83,6 +83,7 @@ func (c *Client) doRequest(method string, query url.Values) (data []byte, err er
 		check for
 			errors.Is() &
 			errors.As() */
+		errMsg := "can't do a request"
 		return nil, e.Wrap(errMsg, err)
 	}
 	req.URL.RawQuery = query.Encode()
@@ -98,4 +99,5 @@ func (c *Client) doRequest(method string, query url.Values) (data []byte, err er
 		return nil, err
 	}
 
+	return body, nil
 }

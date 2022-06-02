@@ -1,8 +1,11 @@
 package telegram
 
 import (
+	"errors"
 	"log"
 	"net/url"
+	"read-adviser-bot/lib/e"
+	"read-adviser-bot/storage"
 	"strings"
 )
 
@@ -14,8 +17,8 @@ const (
 
 //methods:
 
-func (p *Proccessor) doCmd(text, chatID, username) error {
-	text = strings.Trimspace(text)
+func (p *Processor) doCmd(text string, chatID int, username string) error {
+	text = strings.TrimSpace(text)
 	log.Printf("got new command '%s' from '%s'", text, username)
 
 	// add page: http://
@@ -40,11 +43,11 @@ func (p *Proccessor) doCmd(text, chatID, username) error {
 	}
 }
 
-func isAddCmd(text) bool {
+func isAddCmd(text string) bool {
 	return isUrl(text)
 }
 
-func isUrl(text) bool {
+func isUrl(text string) bool {
 	//TODO: links like 'ya.ru'
 	u, err := url.Parse(text)
 	return err == nil && u.Host != ""
@@ -53,10 +56,10 @@ func isUrl(text) bool {
 
 //TODO: implement closure
 
-func (p *Processor) savePage(chatID, text, username) err {
+func (p *Processor) savePage(chatID int, pageURL string, username string) (err error) {
 	defer func() { err = e.WrapIfErr("can't do command: save page", err) }()
 
-	page := &Storage.Page{
+	page := &storage.Page{
 		URL:      pageURL,
 		UserName: username,
 	}
@@ -81,7 +84,7 @@ func (p *Processor) savePage(chatID, text, username) err {
 	return nil
 }
 
-func (p *Processor) sendRandom(chatID, username) (err error) {
+func (p *Processor) sendRandom(chatID int, username string) (err error) {
 	defer func() { err = e.WrapIfErr("can't do command: can't send random", err) }()
 
 	page, err := p.storage.PickRandom(username)
@@ -102,10 +105,10 @@ func (p *Processor) sendRandom(chatID, username) (err error) {
 
 }
 
-func (p *Proccessor) sendHelp(chatID) error {
+func (p *Processor) sendHelp(chatID int) error {
 	return p.tg.SendMessage(chatID, msgHelp)
 }
 
-func (p *Proccessor) sendHello(chatID) error {
+func (p *Processor) sendHello(chatID int) error {
 	return p.tg.SendMessage(chatID, msgHello)
 }

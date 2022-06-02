@@ -11,7 +11,8 @@ type Processor interface {
 type Type int
 
 const (
-	Type = iota
+	Unknown Type = iota
+	Message
 )
 
 type Event struct {
